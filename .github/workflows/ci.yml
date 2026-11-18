@@ -1,0 +1,36 @@
+name: CI
+
+# Runs on every push to main and on every pull request.
+# Render auto-deploys main, so this catches a broken build before it goes live.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies (clean install from package-lock.json)
+        run: npm ci
+
+      - name: Build the React app
+        run: npm run build
+
+      - name: Check the server starts and the API responds
+        run: |
+          node server/index.js &
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:8787/api/health; then echo; echo "Server is up"; exit 0; fi
+            sleep 1
+          done
+          echo "Server did not start"; exit 1
