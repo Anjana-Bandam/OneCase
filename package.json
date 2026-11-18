@@ -3,10 +3,14 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
   "description": "OneCase - Joined-Up Student Support Case Management (ServiceNow Co-Innovation Day, Track 3)",
   "scripts": {
     "dev": "concurrently -k -n web,api -c magenta,cyan \"vite\" \"node server/index.js\"",
     "server": "node server/index.js",
+    "start": "node server/index.js",
     "build": "vite build",
     "preview": "vite preview"
   },

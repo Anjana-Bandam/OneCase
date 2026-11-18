@@ -2,6 +2,8 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'node:url'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { DEPARTMENTS, deptByName } from '../src/data/departments.js'
 import { openDb, stats, DB_FILE } from './db.js'
 import { api, authenticate, requireUser, HttpError } from './api.js'
@@ -140,6 +142,17 @@ JSON shape: {"message":""}`
     next(e)
   }
 })
+
+// Production: serve the built React app (dist/) from this same server, so one Render service runs everything.
+const DIST = fileURLToPath(new URL('../dist/', import.meta.url))
+if (existsSync(DIST)) {
+  app.use(express.static(DIST))
+  // Client-side routes (React Router): any non-API GET returns index.html.
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api')) return next()
+    res.sendFile(join(DIST, 'index.html'))
+  })
+}
 
 app.use((err, _req, res, _next) => {
   const status = err.status || 500
